@@ -12,69 +12,6 @@
                     ],
                     "severity": 10,
                     "prediction": "Based on symptom description, your condition appears to be **worsening**."
-                },
-                {
-                    "date": "2026-01-31",
-                    "symptoms": "My fever is reducing and breathing feels better today. Cough is still there but not severe. Feeling slightly better than yesterday.\n",
-                    "pathway": [
-                        "1 Monitor symptoms for...",
-                        "2 Maintain proper hydration...",
-                        "3 Take oral rehydration...",
-                        "4 Try warm water...",
-                        "7 Due to your...",
-                        "8 If symptoms worsen..."
-                    ],
-                    "severity": 8,
-                    "prediction": "Based on symptom description, your condition appears to be **stable**."
-                },
-                {
-                    "date": "2026-01-31",
-                    "symptoms": "My fever is reducing and breathing feels better today. Cough is still there but not severe. Feeling slightly better than yesterday.\n",
-                    "pathway": [
-                        "1 Monitor symptoms for...",
-                        "2 Maintain proper hydration...",
-                        "3 Take oral rehydration...",
-                        "4 Try warm water...",
-                        "7 Due to your...",
-                        "8 If symptoms worsen..."
-                    ],
-                    "severity": 8,
-                    "prediction": "Based on symptom description, your condition appears to be **stable**."
-                },
-                {
-                    "date": "2026-01-31",
-                    "symptoms": "I have high fever and a severe cough since yesterday. Breathing feels slightly difficult and my body feels very weak.\n",
-                    "pathway": [
-                        "1 Monitor symptoms for...",
-                        "2 Maintain proper hydration...",
-                        "3 Take oral rehydration...",
-                        "4 Try warm water...",
-                        "7 Due to your...",
-                        "8 If symptoms worsen..."
-                    ],
-                    "severity": 10,
-                    "prediction": "Based on symptom description, your condition appears to be **worsening**."
-                },
-                {
-                    "date": "2026-01-31",
-                    "symptoms": "i feel like having chest pain",
-                    "pathway": [
-                        "\ud83d\udd34 1 Seek emergency...",
-                        "\ud83d\udd34 2 Avoid physical..."
-                    ],
-                    "severity": 3,
-                    "prediction": "Based on symptom description, your condition appears to be **stable**."
-                },
-                {
-                    "date": "2026-01-31",
-                    "symptoms": "I am having stomach pain with nausea since morning. I also feel weak and lost appetite. The pain is not severe but is uncomfortable.\n",
-                    "pathway": [
-                        "1 Monitor symptoms for...",
-                        "2 Maintain proper hydration...",
-                        "8 If symptoms worsen..."
-                    ],
-                    "severity": 3,
-                    "prediction": "Based on symptom description, your condition appears to be **worsening**."
                 }
             ],
             "medications": [],
