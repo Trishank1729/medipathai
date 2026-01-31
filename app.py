@@ -1,14 +1,13 @@
 import streamlit as st
 import json
-import os
 from datetime import datetime
-from dotenv import load_dotenv
 
+# LLM + Prompting
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# Existing engines
+# Engines
 from user_manager import register_user, authenticate_user, load_database
 from clinical_pathway_engine import generate_clinical_pathway
 from drug_interaction_engine import check_drug_interactions
@@ -16,18 +15,22 @@ from redflag_engine import detect_red_flags
 from prediction_engine import predict_progression
 from calendar_engine import generate_calendar_plot
 
-# NEW 4 ENGINES
+# New Engines
 from severity_engine import calculate_severity_and_recovery
 from probability_engine import get_possible_conditions
 from lab_test_engine import recommend_lab_tests
 
 
-# ---------------------- ENV SETUP ----------------------
-load_dotenv()
-os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
+# ============================
+# 🔐 LOAD API KEY FROM STREAMLIT SECRETS
+# ============================
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 
-# ---------------------- SIMPLIFY PATHWAY ----------------------
+
+# ============================
+# 🔽 SIMPLE PATHWAY CLEANER
+# ============================
 def simplify_pathway(pathway):
     simple_steps = []
     for step in pathway:
@@ -38,8 +41,15 @@ def simplify_pathway(pathway):
     return simple_steps
 
 
-# ---------------------- LLM SETUP ----------------------
-llm = ChatGroq(model="llama-3.3-70b-versatile")
+
+# ============================
+# 🤖 LLM SETUP
+# ============================
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    api_key=GROQ_API_KEY
+)
+
 parser = StrOutputParser()
 
 prompt = ChatPromptTemplate.from_messages([
@@ -50,9 +60,9 @@ prompt = ChatPromptTemplate.from_messages([
 
     Rules:
     - Use bullet points
-    - Do NOT diagnose
-    - No medical jargon
-    - No prescriptions
+    - Do NOT diagnose or prescribe
+    - Avoid medical jargon
+    - Keep explanations simple
     """),
 
     ("user",
@@ -77,20 +87,24 @@ prompt = ChatPromptTemplate.from_messages([
 chain = prompt | llm | parser
 
 
-# ---------------------- STREAMLIT UI ----------------------
+
+# ============================
+# 🌟 STREAMLIT UI SETUP
+# ============================
 st.set_page_config(layout="wide", page_title="MediPathAI v3")
 st.title("🧠 MediPathAI v3 — Advanced Clinical Intelligence System")
 
-
-# ---------------------- LOGIN SYSTEM ----------------------
 db = load_database()
 
+
+# ============================
+# 🔑 LOGIN SYSTEM
+# ============================
 menu = ["Login", "Register"]
 choice = st.sidebar.selectbox("Account", menu)
 
 if "user" not in st.session_state:
     st.session_state.user = None
-
 
 # REGISTER
 if choice == "Register":
@@ -103,7 +117,6 @@ if choice == "Register":
             st.success("Account created! Please login.")
         else:
             st.error("Username already exists.")
-
 
 # LOGIN
 elif choice == "Login":
@@ -118,19 +131,24 @@ elif choice == "Login":
         else:
             st.error("Invalid username or password")
 
-
-# stop if not logged in
+# Stop app if user not logged in
 if not st.session_state.user:
     st.stop()
 
 
-# ---------------------- MAIN UI ----------------------
+
+# ============================
+# MAIN APP
+# ============================
 st.success(f"Logged in as: {st.session_state.user}")
 
 col1, col2 = st.columns([1.5, 1])
 
 
-# ---------------------- LEFT PANEL: INPUT & ANALYSIS ----------------------
+
+# ============================
+# LEFT PANEL - USER INPUT + ANALYSIS
+# ============================
 with col1:
     st.header("💬 Describe Your Symptoms")
 
@@ -140,7 +158,7 @@ with col1:
 
     if st.button("Analyze"):
 
-        # Existing engines
+        # Engines
         pathway = generate_clinical_pathway(symptoms, history)
         simple_pathway = simplify_pathway(pathway)
 
@@ -148,12 +166,12 @@ with col1:
         redflags = detect_red_flags(symptoms)
         prediction = predict_progression(symptoms)
 
-        # NEW ENGINES
+        # New engines
         severity, recovery = calculate_severity_and_recovery(symptoms)
         conditions = get_possible_conditions(symptoms)
         labtests = recommend_lab_tests(symptoms)
 
-        # LLM final summary
+        # Final LLM Response
         response = chain.invoke({
             "symptoms": symptoms,
             "history": history,
@@ -167,7 +185,7 @@ with col1:
             "labtests": labtests
         })
 
-        # Save into history
+        # Save user history
         db = load_database()
         db["users"][st.session_state.user]["history"].append({
             "date": str(datetime.now().date()),
@@ -180,11 +198,10 @@ with col1:
         with open("database.json", "w") as f:
             json.dump(db, f, indent=4)
 
-        # Display output
+        # Show Results
         st.subheader("🧠 AI Summary")
         st.markdown(response)
 
-        # ALL SECTIONS
         st.subheader("📊 Severity & Recovery")
         st.markdown(f"- **Severity:** {severity}/10")
         st.markdown(f"- **Recovery Time:** {recovery}")
@@ -201,14 +218,13 @@ with col1:
             st.markdown(interactions)
 
         st.subheader("🚨 Red Flags")
-
         if redflags:
             for r in redflags:
                 st.markdown(f"- {r}")
         else:
             st.markdown("✔ No red flags detected.")
 
-        st.subheader("🔍 Possible Conditions (Safe)")
+        st.subheader("🔍 Possible Conditions")
         for c in conditions:
             st.markdown(f"- {c}")
 
@@ -218,7 +234,9 @@ with col1:
 
 
 
-# ---------------------- RIGHT PANEL: HISTORY + CALENDAR ----------------------
+# ============================
+# RIGHT PANEL - HISTORY & CALENDAR
+# ============================
 with col2:
     st.header("📅 Health Calendar")
     fig = generate_calendar_plot(st.session_state.user)
