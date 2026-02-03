@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 # Engines
-from user_manager import register_user, authenticate_user, load_database
+from user_manager import register_user, authenticate_user, load_database, save_database
 from clinical_pathway_engine import generate_clinical_pathway
 from drug_interaction_engine import check_drug_interactions
 from redflag_engine import detect_red_flags
@@ -82,7 +82,7 @@ prompt = ChatPromptTemplate.from_messages([
 chain = prompt | llm | parser
 
 # ============================
-# 🌟 STREAMLIT UI SETUP
+# UI SETUP
 # ============================
 st.set_page_config(layout="wide", page_title="MediPathAI v3")
 st.title("🧠 MediPathAI v3 — Advanced Clinical Intelligence System")
@@ -90,7 +90,7 @@ st.title("🧠 MediPathAI v3 — Advanced Clinical Intelligence System")
 db = load_database()
 
 # ============================
-# 🔑 LOGIN SYSTEM
+# LOGIN SYSTEM
 # ============================
 menu = ["Login", "Register"]
 choice = st.sidebar.selectbox("Account", menu)
@@ -134,7 +134,7 @@ st.success(f"Logged in as: {st.session_state.user}")
 col1, col2 = st.columns([1.5, 1])
 
 # ============================
-# LEFT PANEL — INPUT + ANALYSIS
+# LEFT PANEL — INPUT
 # ============================
 with col1:
     st.header("💬 Describe Your Symptoms")
@@ -145,6 +145,7 @@ with col1:
 
     if st.button("Analyze"):
 
+        # Engines
         pathway = generate_clinical_pathway(symptoms, history)
         simple_pathway = simplify_pathway(pathway)
 
@@ -152,10 +153,12 @@ with col1:
         redflags = detect_red_flags(symptoms)
         prediction = predict_progression(symptoms)
 
+        # New engines
         severity, recovery = calculate_severity_and_recovery(symptoms)
         conditions = get_possible_conditions(symptoms)
         labtests = recommend_lab_tests(symptoms)
 
+        # LLM response
         response = chain.invoke({
             "symptoms": symptoms,
             "history": history,
@@ -170,7 +173,7 @@ with col1:
         })
 
         # ============================
-        # FIXED — SAVE UNIQUE TIMESTAMP
+        # FIXED — SAVE HISTORY CORRECTLY
         # ============================
         db = load_database()
         db["users"][st.session_state.user]["history"].append({
@@ -181,9 +184,11 @@ with col1:
             "prediction": prediction
         })
 
-        with open("database.json", "w") as f:
-            json.dump(db, f, indent=4)
+        save_database(db)   # <— FIXED (prevents wrong file paths)
 
+        # ============================
+        # DISPLAY RESULTS
+        # ============================
         st.subheader("🧠 AI Summary")
         st.markdown(response)
 
@@ -218,7 +223,7 @@ with col1:
             st.markdown(f"- {t}")
 
 # ============================
-# RIGHT PANEL — HISTORY & CALENDAR
+# RIGHT PANEL — CALENDAR & HISTORY
 # ============================
 with col2:
     st.header("📅 Health Calendar")

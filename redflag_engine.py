@@ -1,23 +1,12 @@
-# redflag_engine.py
-
-def detect_red_flags(symptoms: str):
-    symptoms = symptoms.lower()
+def detect_red_flags(symptoms):
     red_flags = []
 
-    if "difficulty breathing" in symptoms or "shortness of breath" in symptoms:
-        red_flags.append("Breathing difficulty (seek medical help if it worsens).")
+    s = symptoms.lower()
+    if "chest pain" in s:
+        red_flags.append("Chest pain is a medical emergency.")
+    if "shortness of breath" in s:
+        red_flags.append("Difficulty breathing requires urgent evaluation.")
+    if "severe headache" in s:
+        red_flags.append("Sudden severe headache can be serious.")
 
-    if "chest pain" in symptoms:
-        red_flags.append("Chest pain detected (may need immediate attention).")
-
-    if "unconscious" in symptoms or "fainting" in symptoms:
-        red_flags.append("Fainting / unconsciousness (critical).")
-
-    if "severe headache" in symptoms:
-        red_flags.append("Severe headache (possible serious condition).")
-
-    if "high fever" in symptoms:
-        red_flags.append("High fever (monitor closely).")
-
-    # If no red flags found; return empty list (not None)
     return red_flags
