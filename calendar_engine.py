@@ -3,10 +3,6 @@ from datetime import datetime
 from user_manager import load_database
 
 def generate_calendar_plot(username):
-    """
-    Generates a health trend line chart for the user.
-    Symptom severity is inferred based on keywords.
-    """
 
     db = load_database()
 
@@ -16,39 +12,35 @@ def generate_calendar_plot(username):
     history = db["users"][username]["history"]
 
     if not history:
-        return None  # No data to plot
+        return None
 
     dates = []
     severity_scores = []
 
-    # Severity scoring keywords
-    severe_keywords = ["severe", "worse", "worsening", "increasing", "high fever"]
-    mild_keywords = ["mild", "improving", "better", "reduced"]
-    
     for entry in history:
-        date = entry["date"]
-        symptoms = entry["symptoms"].lower()
+        date_str = entry["date"]
 
-        score = 0
+        # Accept both "YYYY-MM-DD" and "YYYY-MM-DD HH:MM:SS"
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+        except:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
 
-        for word in severe_keywords:
-            if word in symptoms:
-                score += 2
-        
-        for word in mild_keywords:
-            if word in symptoms:
-                score -= 1
+        dates.append(date_obj)
 
-        dates.append(datetime.strptime(date, "%Y-%m-%d"))
+        # Use real severity score
+        score = entry.get("severity", 0)
+        if score == "N/A":
+            score = 0
+
         severity_scores.append(score)
 
-    # ---------------------- PLOT ----------------------
     fig, ax = plt.subplots(figsize=(6, 4))
     ax.plot(dates, severity_scores, marker='o', linewidth=2)
 
     ax.set_title("Health Trend Calendar")
     ax.set_xlabel("Date")
-    ax.set_ylabel("Symptom Severity Score")
+    ax.set_ylabel("Severity Score")
     ax.grid(True)
 
     return fig

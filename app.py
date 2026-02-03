@@ -20,13 +20,10 @@ from severity_engine import calculate_severity_and_recovery
 from probability_engine import get_possible_conditions
 from lab_test_engine import recommend_lab_tests
 
-
 # ============================
-# 🔐 LOAD API KEY FROM STREAMLIT SECRETS
+# 🔐 LOAD API KEY FROM SECRETS
 # ============================
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-
-
 
 # ============================
 # 🔽 SIMPLE PATHWAY CLEANER
@@ -39,8 +36,6 @@ def simplify_pathway(pathway):
         short = " ".join(words[:4]) + "..."
         simple_steps.append(short)
     return simple_steps
-
-
 
 # ============================
 # 🤖 LLM SETUP
@@ -86,8 +81,6 @@ prompt = ChatPromptTemplate.from_messages([
 
 chain = prompt | llm | parser
 
-
-
 # ============================
 # 🌟 STREAMLIT UI SETUP
 # ============================
@@ -95,7 +88,6 @@ st.set_page_config(layout="wide", page_title="MediPathAI v3")
 st.title("🧠 MediPathAI v3 — Advanced Clinical Intelligence System")
 
 db = load_database()
-
 
 # ============================
 # 🔑 LOGIN SYSTEM
@@ -131,11 +123,8 @@ elif choice == "Login":
         else:
             st.error("Invalid username or password")
 
-# Stop app if user not logged in
 if not st.session_state.user:
     st.stop()
-
-
 
 # ============================
 # MAIN APP
@@ -144,10 +133,8 @@ st.success(f"Logged in as: {st.session_state.user}")
 
 col1, col2 = st.columns([1.5, 1])
 
-
-
 # ============================
-# LEFT PANEL - USER INPUT + ANALYSIS
+# LEFT PANEL — INPUT + ANALYSIS
 # ============================
 with col1:
     st.header("💬 Describe Your Symptoms")
@@ -158,7 +145,6 @@ with col1:
 
     if st.button("Analyze"):
 
-        # Engines
         pathway = generate_clinical_pathway(symptoms, history)
         simple_pathway = simplify_pathway(pathway)
 
@@ -166,12 +152,10 @@ with col1:
         redflags = detect_red_flags(symptoms)
         prediction = predict_progression(symptoms)
 
-        # New engines
         severity, recovery = calculate_severity_and_recovery(symptoms)
         conditions = get_possible_conditions(symptoms)
         labtests = recommend_lab_tests(symptoms)
 
-        # Final LLM Response
         response = chain.invoke({
             "symptoms": symptoms,
             "history": history,
@@ -185,10 +169,12 @@ with col1:
             "labtests": labtests
         })
 
-        # Save user history
+        # ============================
+        # FIXED — SAVE UNIQUE TIMESTAMP
+        # ============================
         db = load_database()
         db["users"][st.session_state.user]["history"].append({
-            "date": str(datetime.now().date()),
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "symptoms": symptoms,
             "pathway": simple_pathway,
             "severity": severity,
@@ -198,7 +184,6 @@ with col1:
         with open("database.json", "w") as f:
             json.dump(db, f, indent=4)
 
-        # Show Results
         st.subheader("🧠 AI Summary")
         st.markdown(response)
 
@@ -232,10 +217,8 @@ with col1:
         for t in labtests:
             st.markdown(f"- {t}")
 
-
-
 # ============================
-# RIGHT PANEL - HISTORY & CALENDAR
+# RIGHT PANEL — HISTORY & CALENDAR
 # ============================
 with col2:
     st.header("📅 Health Calendar")
@@ -251,12 +234,12 @@ with col2:
     if user_data:
         for entry in user_data:
             st.markdown(f"""
-            **📅 Date:** {entry['date']}
-            **📝 Symptoms:** {entry['symptoms']}
+            **📅 Date:** {entry['date']}  
+            **📝 Symptoms:** {entry['symptoms']}  
             **📌 Pathway:**  
-            {"<br>".join([f"- {p}" for p in entry['pathway']])}
+            {"<br>".join([f"- {p}" for p in entry['pathway']])}  
             **🔥 Severity:** {entry['severity']}/10  
-            **🔮 Prediction:** {entry['prediction']}
+            **🔮 Prediction:** {entry['prediction']}  
             ---
             """, unsafe_allow_html=True)
     else:
